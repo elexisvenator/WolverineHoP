@@ -1,0 +1,79 @@
+﻿@page "/wolverine-events/todo-list"
+@using WolverineHoP.Web.Api.Wolverine
+@using WolverineHoP.Web.Api.WolverineEvents
+@rendermode InteractiveServer
+@attribute [StreamRendering(true)]
+
+@inject WolverineEventsApiClient Api
+@inject NavigationManager NavManager
+
+<PageTitle>Todo lists (wolverine-events)</PageTitle>
+
+<h1>Todo lists @(ShowArchived ? "(Archived)" : "")</h1>
+
+<div class="input-group mb-3">
+    <span class="input-group-text" id="tenant-label">Tenant</span>
+    <input type="number" class="form-control" id="tenant" aria-describedby="tenant-label" @bind="Tenant" style="max-width: 120px;" min="1" max="2180">
+    <button class="btn btn-outline-secondary" type="button" @onclick="ChangeTenant">Apply</button>
+</div>
+
+@if (ShowArchived)
+{
+    <a class="btn btn-outline-secondary" href="@NavManager.GetUriWithQueryParameters(new Dictionary<string, object?> {{"archived", false},{"tenant", Tenant}})">Show active</a>
+}
+else
+{
+    <a class="btn btn-outline-secondary" href="@NavManager.GetUriWithQueryParameters(new Dictionary<string, object?> {{"archived", true},{"tenant", Tenant}})">Show archived</a>
+}
+
+<a class="btn btn-primary float-end" href="wolverine-events/todo-list/create?tenant=@Tenant">Create new list</a>
+
+@if (_todoLists == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Items</th>
+                <th>Title</th>
+                <th>Date created</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var todoList in _todoLists)
+            {
+                <tr>
+                    <td>@todoList.CompletedItems / @todoList.TotalItems items</td>
+                    <td><a href="wolverine-events/todo-list/@todoList.Id?tenant=@Tenant">@todoList.Title</a></td>
+                    <td>@todoList.DateCreated</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+
+    [SupplyParameterFromQuery(Name = "tenant")]
+    public int? Tenant { get => _tenant; set => _tenant = value ?? 100; }
+
+    private int _tenant = 100;
+
+    private void ChangeTenant()
+    {
+        NavManager.NavigateTo(NavManager.GetUriWithQueryParameter("tenant", _tenant));
+    }
+
+    [SupplyParameterFromQuery(Name = "archived")]
+    public bool ShowArchived { get; set; }
+    
+    private List<TodoListSummary>? _todoLists;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        _todoLists = await Api.GetTodoLists(ShowArchived, Tenant);
+    }
+}

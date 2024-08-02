@@ -1,0 +1,60 @@
+﻿@page "/vanilla/todo-list"
+@using WolverineHoP.Web.Api.Vanilla
+@attribute [StreamRendering(true)]
+
+@inject VanillaApiClient Api
+@inject NavigationManager NavManager
+
+<PageTitle>Todo lists (vanilla)</PageTitle>
+
+<h1>Todo lists @(ShowArchived ? "(Archived)" : "")</h1>
+
+@if (ShowArchived)
+{
+    <a class="btn btn-outline-secondary" href="@NavManager.GetUriWithQueryParameter("archived", false)">Show active</a>
+}
+else
+{
+    <a class="btn btn-outline-secondary" href="@NavManager.GetUriWithQueryParameter("archived", true)">Show archived</a>
+}
+
+<a class="btn btn-primary float-end" href="vanilla/todo-list/create">Create new list</a>
+
+@if (_todoLists == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Items</th>
+                <th>Title</th>
+                <th>Date created</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var todoList in _todoLists)
+            {
+                <tr>
+                    <td>@todoList.CompletedItems / @todoList.TotalItems items</td>
+                    <td><a href="vanilla/todo-list/@todoList.Id">@todoList.Title</a></td>
+                    <td>@todoList.DateCreated</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    [SupplyParameterFromQuery(Name = "archived")]
+    public bool ShowArchived { get; set; }
+    
+    private List<TodoListSummary>? _todoLists;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        _todoLists = await Api.GetTodoLists(ShowArchived);
+    }
+}

@@ -1,0 +1,149 @@
+﻿@page "/wolverine-events/todo-list/{todoListId:guid}"
+@using System.ComponentModel.DataAnnotations
+@using WolverineHoP.Web.Api.Wolverine
+@using WolverineHoP.Web.Api.WolverineEvents
+@rendermode InteractiveServer
+@attribute [StreamRendering(true)]
+
+@inject WolverineEventsApiClient Api
+@inject NavigationManager NavManager
+
+<PageTitle>Todo list (wolverine-evens): </PageTitle>
+
+<h1>@(_todoList?.Title ?? "Loading...")</h1>
+
+<div class="input-group mb-3">
+    <span class="input-group-text" id="tenant-label">Tenant</span>
+    <input type="number" class="form-control" id="tenant" aria-describedby="tenant-label" @bind="Tenant" style="max-width: 120px;" min="1" max="2180">
+    <button class="btn btn-outline-secondary" type="button" @onclick="ChangeTenant">Apply</button>
+</div>
+
+@if (_todoList is not null)
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th></th>
+                <th>Item</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var item in _todoList.Items)
+        {
+            <tr>
+                <td>
+                    <div class="text-center">
+                        <input class="form-check-input"
+                               type="checkbox"
+                               id="item_checked_@item.Id"
+                               checked="@item.Checked"
+                               @onchange="() => ToggleItem(item)">
+                        <label class="form-check-label visually-hidden" for="item_checked_@item.Id">Check item</label>
+                    </div>
+                </td>
+                    <td class="@(item.Checked ? "text-decoration-line-through" : "")">
+                    @item.Description
+                </td>
+            </tr>
+        }
+        </tbody>
+        <tfoot>
+        <tr>
+            <td></td>
+            <td>
+                    <EditForm FormName="CreateTodoListsForm" Model="Model" OnValidSubmit="CreateNewItem" class="row">
+                    <div class="form-group">
+                            <DataAnnotationsValidator/>
+                            <CustomValidation @ref="customValidation"/>
+                            <ValidationSummary/>
+                    </div>
+                    <div class="col-auto">
+                        <label @bind="Model!.Description" class="visually-hidden">Description</label>
+                        <InputText @bind-Value="Model!.Description" class="form-control" />
+                    </div>
+                    <div class="col-auto">
+                        <button class="btn btn-primary" type="submit">Add item</button>
+                    </div>
+                </EditForm>
+            </td>
+        </tr>
+        </tfoot>
+    </table>
+}
+
+@code {
+
+    [SupplyParameterFromQuery(Name = "tenant")]
+    public int? Tenant { get => _tenant; set => _tenant = value ?? 100; }
+
+    private int _tenant = 100;
+
+    private void ChangeTenant()
+    {
+        NavManager.NavigateTo(NavManager.GetUriWithQueryParameter("tenant", _tenant));
+    }
+
+    private CustomValidation? customValidation;
+
+    [Parameter]
+    public Guid TodoListId { get; set; }
+
+    private TodoListDetail? _todoList;
+
+    [SupplyParameterFromForm]
+    public NewListItemModel? Model { get; set; }
+    protected override void OnInitialized() => Model ??= new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _todoList = await Api.GetTodoList(TodoListId, Tenant);
+    }
+
+    private async Task ToggleItem(TodoListItem item)
+    {
+        if (item.Checked)
+        {
+            var response = await Api.UncheckItem(TodoListId, item.Id, Tenant);
+            if (response.IsT0)
+            {
+                item.Checked = false;
+            }
+        }
+        else
+        {
+            var response = await Api.CheckItem(TodoListId, item.Id, Tenant);
+            if (response.IsT0)
+            {
+                item.Checked = true;
+            }
+        }
+    }
+
+    private async Task CreateNewItem()
+    {
+        customValidation?.ClearErrors();
+
+        var response = await Api.CreateTodoListItem(TodoListId, Model!.Description!, Tenant);
+        if (response.TryPickT0(out var todoListItemId, out var errors))
+        {
+            _todoList?.Items.Add(new TodoListItem
+            {
+                Id = todoListItemId,
+                Checked = false,
+                Description = Model!.Description!,
+            });
+
+            Model = new NewListItemModel();
+        }
+        else
+        {
+            customValidation?.DisplayErrors(errors);
+        }
+    }
+
+    public class NewListItemModel
+    {
+        [Required(AllowEmptyStrings = false)]
+        public string? Description { get; set; }
+    }
+}

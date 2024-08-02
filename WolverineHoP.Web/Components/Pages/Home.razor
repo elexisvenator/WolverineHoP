@@ -1,0 +1,117 @@
+﻿@page "/"
+@using WolverineHoP.Web.Api.Vanilla
+@using WolverineHoP.Web.Api.WolverineDocument
+@using WolverineHoP.Web.Api.WolverineEvents
+@rendermode InteractiveServer
+
+@inject VanillaApiClient VanillaApi
+@inject WolverineDocumentApiClient DocumentApi
+@inject WolverineEventsApiClient EventsApi
+
+<PageTitle>Home</PageTitle>
+
+<h1>Hello, world!</h1>
+
+<button class="btn btn-primary btn-lg" @onclick="SeedData">Seed data</button>
+
+@if (Done)
+{
+    <p class="mt-4 lead">Done!</p>
+}
+
+@code
+{
+    public bool Done { get; set; }
+
+    public async Task SeedData()
+    {
+        Done = false;
+        await VanillaApi.SetupSchema();
+        {
+            var musicTask = (await VanillaApi.CreateTodoList("Music to find")).AsT0;
+            var m1Item = (await VanillaApi.CreateTodoListItem(musicTask, "That one that goes do do dee dooodo")).AsT0;
+            await VanillaApi.CreateTodoListItem(musicTask, "Rick Astley");
+            await VanillaApi.CheckItem(musicTask, m1Item);
+
+            var workTask = (await VanillaApi.CreateTodoList("Work tasks")).AsT0;
+            await VanillaApi.CreateTodoListItem(workTask, "Message Manager");
+            var w2Item = (await VanillaApi.CreateTodoListItem(workTask, "Prepare for HoP")).AsT0;
+            await VanillaApi.CreateTodoListItem(workTask, "Do security training");
+            await VanillaApi.CreateTodoListItem(workTask, "Get those gift cards that the CEO emailed me about");
+            var w5Item = (await VanillaApi.CreateTodoListItem(workTask, "Plan next quarter")).AsT0;
+            await VanillaApi.CheckItem(workTask, w2Item);
+            await VanillaApi.CheckItem(workTask, w5Item);
+
+            var movingTask = (await VanillaApi.CreateTodoList("Moving house checklist")).AsT0;
+            var mv1Item = (await VanillaApi.CreateTodoListItem(movingTask, "Keys")).AsT0;
+            var mv2Item = (await VanillaApi.CreateTodoListItem(movingTask, "Fridge")).AsT0;
+            var mv3Item = (await VanillaApi.CreateTodoListItem(movingTask, "Partner")).AsT0;
+            await VanillaApi.CheckItem(movingTask, mv1Item);
+            await VanillaApi.CheckItem(movingTask, mv2Item);
+            await VanillaApi.CheckItem(movingTask, mv3Item);
+            await VanillaApi.ArchiveTodoList(movingTask);
+        }
+
+        {
+            var musicTask = (await DocumentApi.CreateTodoList("Music to find")).AsT0;
+            var m1Item = (await DocumentApi.CreateTodoListItem(musicTask, "That one that goes do do dee dooodo")).AsT0;
+            await DocumentApi.CreateTodoListItem(musicTask, "Rick Astley");
+            await DocumentApi.CheckItem(musicTask, m1Item);
+
+            var workTask = (await DocumentApi.CreateTodoList("Work tasks")).AsT0;
+            await DocumentApi.CreateTodoListItem(workTask, "Message Manager");
+            var w2Item = (await DocumentApi.CreateTodoListItem(workTask, "Prepare for HoP")).AsT0;
+            await DocumentApi.CreateTodoListItem(workTask, "Do security training");
+            await DocumentApi.CreateTodoListItem(workTask, "Get those gift cards that the CEO emailed me about");
+            var w5Item = (await DocumentApi.CreateTodoListItem(workTask, "Plan next quarter")).AsT0;
+            await DocumentApi.CheckItem(workTask, w2Item);
+            await DocumentApi.CheckItem(workTask, w5Item);
+
+            var movingTask = (await DocumentApi.CreateTodoList("Moving house checklist")).AsT0;
+            var mv1Item = (await DocumentApi.CreateTodoListItem(movingTask, "Keys")).AsT0;
+            var mv2Item = (await DocumentApi.CreateTodoListItem(movingTask, "Fridge")).AsT0;
+            var mv3Item = (await DocumentApi.CreateTodoListItem(movingTask, "Partner")).AsT0;
+            await DocumentApi.CheckItem(movingTask, mv1Item);
+            await DocumentApi.CheckItem(movingTask, mv2Item);
+            await DocumentApi.CheckItem(movingTask, mv3Item);
+            await DocumentApi.ArchiveTodoList(movingTask);
+        }
+
+        {
+            var tenant100 = 100;
+            var musicTask = (await EventsApi.CreateTodoList("Music to find", tenant100)).AsT0;
+            var m1Item = (await EventsApi.CreateTodoListItem(musicTask, "That one that goes do do dee dooodo", tenant100)).AsT0;
+            await EventsApi.CreateTodoListItem(musicTask, "Rick Astley", tenant100);
+            await EventsApi.CheckItem(musicTask, m1Item, tenant100);
+
+            var workTask = (await EventsApi.CreateTodoList("Work tasks", tenant100)).AsT0;
+            await EventsApi.CreateTodoListItem(workTask, "Message Manager", tenant100);
+            var w2Item = (await EventsApi.CreateTodoListItem(workTask, "Prepare for HoP", tenant100)).AsT0;
+            await EventsApi.CreateTodoListItem(workTask, "Do security training", tenant100);
+            await EventsApi.CreateTodoListItem(workTask, "Get those gift cards that the CEO emailed me about", tenant100);
+            var w5Item = (await EventsApi.CreateTodoListItem(workTask, "Plan next quarter", tenant100)).AsT0;
+            await EventsApi.CheckItem(workTask, w2Item, tenant100);
+            await EventsApi.CheckItem(workTask, w5Item, tenant100);
+
+            var movingTask = (await EventsApi.CreateTodoList("Moving house checklist", tenant100)).AsT0;
+            var mv1Item = (await EventsApi.CreateTodoListItem(movingTask, "Keys", tenant100)).AsT0;
+            var mv2Item = (await EventsApi.CreateTodoListItem(movingTask, "Fridge", tenant100)).AsT0;
+            var mv3Item = (await EventsApi.CreateTodoListItem(movingTask, "Partner", tenant100)).AsT0;
+            await EventsApi.CheckItem(movingTask, mv1Item, tenant100);
+            await EventsApi.CheckItem(movingTask, mv2Item, tenant100);
+            await EventsApi.CheckItem(movingTask, mv3Item, tenant100);
+            await EventsApi.ArchiveTodoList(movingTask, tenant100);
+        }
+
+        {
+            var tenant218 = 218;
+            var worldDominationTask = (await EventsApi.CreateTodoList("Plan for world domination", tenant218)).AsT0;
+            var wd1Item = (await EventsApi.CreateTodoListItem(worldDominationTask, "Write a checklist", tenant218)).AsT0;
+            await EventsApi.CreateTodoListItem(worldDominationTask, "???", tenant218);
+            await EventsApi.CreateTodoListItem(worldDominationTask, "Profit", tenant218);
+            await EventsApi.CheckItem(worldDominationTask, wd1Item, tenant218);
+        }
+
+        Done = true;
+    }
+}
