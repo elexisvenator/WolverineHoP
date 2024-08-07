@@ -50,6 +50,6 @@ public static class CheckItemEndpoint
     [WolverinePost("api/todo-list/{todoListId:guid}/{todoListItemId:guid}/uncheck"), EmptyResponse]
     public static TodoListItemUncheckedEvent? Uncheck([Aggregate] TodoListItem todoListItem)
     {
-        return todoListItem.Checked ? null : new TodoListItemUncheckedEvent(todoListItem.TodoListId);
+        return !todoListItem.Checked ? null : new TodoListItemUncheckedEvent(todoListItem.TodoListId);
     }
 }
